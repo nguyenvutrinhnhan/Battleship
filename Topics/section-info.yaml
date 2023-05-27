@@ -1,0 +1,52 @@
+content:
+- Printing data
+- Types and variables
+- Comments
+- Overview of the basic program
+- Scanning the input
+- Integer types and operations
+- Relational operators
+- Conditional statement
+- Increment and decrement
+- The while and do-while loops
+- The for-loop
+- Branching statements
+- Switch statement
+- Calling a method
+- Declaring a method
+- The main method
+- Functional decomposition
+- Overloading
+- Primitive and reference types
+- Array
+- Arrays as parameters
+- Iterating over arrays
+- String
+- Errors in programs
+- What is an exception
+- NPE
+- Defining classes
+- Constructor
+- Instance methods
+- Package
+- Getters and setters
+- Multiple constructors
+- The keyword super
+- Objects
+- Hierarchy of exceptions
+- Exception handling
+- Throwing exceptions
+- Custom exceptions
+- Inheritance
+- Multidimensional array
+- Files
+- Array exceptions
+- Input streams
+- Try with resources
+- Debugging techniques
+- Static members
+- Enums in Java
+- Fields and methods in enum
+- Hiding and overriding
+- Abstract class
+- Introduction to Java

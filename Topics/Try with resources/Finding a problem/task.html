@@ -1,0 +1,12 @@
+<h2>Finding a problem</h2>
+<p></p>
+<p>Examine the code below:</p>
+<pre><code class="language-java">String message = "I lake: ";                                     // #1 
+try (Scanner scanner = new Scanner(System.in);                   // #2
+     StringBuilder stringBuilder = new StringBuilder(message)) { // #3
+
+    stringBuilder.append(scanner.nextLine());                    // #4                   
+    stringBuilder.append(scanner.nextLine());                    // #5
+}
+System.out.println(stringBuilder);                               // #6</code></pre>
+<p>Select the number of the line where a compile-time error occurs.</p>

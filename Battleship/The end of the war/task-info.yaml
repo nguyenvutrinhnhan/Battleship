@@ -1,0 +1,944 @@
+type: edu
+files:
+- name: src/battleship/Main.java
+  visible: true
+  text: |
+    package battleship;
+
+    public class Main {
+
+        public static void main(String[] args) {
+            // Write your code here
+        }
+    }
+  learner_created: false
+- name: test/Tests.java
+  visible: false
+  text: |-
+    import org.hyperskill.hstest.dynamic.input.DynamicTestingMethod;
+    import org.hyperskill.hstest.exception.outcomes.WrongAnswer;
+    import org.hyperskill.hstest.stage.StageTest;
+    import org.hyperskill.hstest.testcase.CheckResult;
+    import org.hyperskill.hstest.testing.TestedProgram;
+
+
+    public class Tests extends StageTest<String> {
+
+        @DynamicTestingMethod
+        CheckResult exampleTest() {
+
+            TestedProgram main = new TestedProgram();
+            String output = main.start().trim();
+            String[][] matrix;
+
+            if (!output.toLowerCase().contains("aircraft carrier")) {
+                return CheckResult.wrong("After starting the program, you should request " +
+                    "the coordinates of the Aircraft Carrier in that way:\n" +
+                    "\"Enter the coordinates of the Aircraft Carrier (5 cells):\"");
+            }
+
+            output = main.execute("F3 F7").trim();
+            matrix = getFieldMatrix(output);
+            findShipByCoordinates(matrix, "F3 F7");
+
+            if (!output.toLowerCase().contains("battleship")) {
+                return CheckResult.wrong("After asking for the Aircraft Carrier coordinates, you should request " +
+                    "the coordinates of the Battleship in that way:\n" +
+                    "\"Enter the coordinates of the Battleship (4 cells):\"");
+            }
+
+            output = main.execute("A1 D1").trim();
+            matrix = getFieldMatrix(output);
+            findShipByCoordinates(matrix, "A1 D1");
+
+            if (!output.toLowerCase().contains("submarine")) {
+                return CheckResult.wrong("After asking for the Battleship coordinates, you should request " +
+                    "the coordinates of the Submarine in that way:\n" +
+                    "\"Enter the coordinates of the Submarine (3 cells):\"");
+            }
+
+            output = main.execute("J7 J10").trim();
+            if (isGameFieldPrinted(output)) {
+                return CheckResult.wrong("Your program should not print a game field if there is an input mistake.");
+            }
+
+            output = main.execute("J10 J8").trim();
+            matrix = getFieldMatrix(output);
+            findShipByCoordinates(matrix, "J10 J8");
+
+            if (!output.toLowerCase().contains("cruiser")) {
+                return CheckResult.wrong("After asking for the Submarine coordinates, you should request " +
+                    "the coordinates of the Cruiser in that way:\n" +
+                    "\"Enter the coordinates of the Cruiser (3 cells):\"");
+            }
+
+            output = main.execute("B9 D8").trim();
+            if (isGameFieldPrinted(output)) {
+                return CheckResult.wrong("Your program should not print a game field if there is an input mistake.");
+            }
+
+            output = main.execute("B9 D9").trim();
+            matrix = getFieldMatrix(output);
+            findShipByCoordinates(matrix, "B9 D9");
+
+            if (!output.toLowerCase().contains("destroyer")) {
+                return CheckResult.wrong("After asking for the Cruiser coordinates, you should request " +
+                    "the coordinates of the Destroyer in that way:\n" +
+                    "\"Enter the coordinates of the Destroyer (2 cells):\"");
+            }
+
+            output = main.execute("E6 D6").trim();
+            if (isGameFieldPrinted(output)) {
+                return CheckResult.wrong("Your program should not print a game field if there is an input mistake. " +
+                    "(Too close to another ship)");
+            }
+
+            output = main.execute("I2 J2").trim();
+            matrix = getFieldMatrix(output);
+            findShipByCoordinates(matrix, "I2 J2");
+
+            if (!output.contains("starts")) {
+                return CheckResult.wrong("After entering the coordinates of all ships you should print:\n" +
+                    "\"The game starts!\"");
+            }
+
+            output = validateShots(main, new String[][]{
+                {"A1", "x"}, {"A2", "m"}, {"B1", "x"}, {"C1", "x"}, {"D1", "x"}, {"E4", "m"},
+                {"B9", "x"}, {"C9", "x"}, {"D9", "x"}, {"E9", "m"}, {"F3", "x"}, {"F4", "x"},
+                {"F5", "x"}, {"F6", "x"}, {"F7", "x"}, {"F10", "m"}, {"G8", "m"}, {"G5", "m"},
+                {"H2", "m"}, {"I2", "x"}, {"J2", "x"}, {"J6", "m"}, {"J8", "x"}, {"J9", "x"}, {"J10", "x"}
+            });
+
+            if (!output.toLowerCase().contains("you sank the last ship")) {
+                return CheckResult.wrong("At the end of the game, your program should print a congratulatory message to the winner:" +
+                    " You sank the last ship. You won. Congratulations!");
+            }
+
+            if (!main.isFinished()) {
+                return CheckResult.wrong("The game didn't stop after all ships were sank.");
+            }
+
+            return CheckResult.correct();
+        }
+
+
+        @DynamicTestingMethod
+        CheckResult test() {
+
+            TestedProgram main = new TestedProgram();
+            String output = main.start().trim();
+            String[][] matrix;
+
+            if (!output.toLowerCase().contains("aircraft carrier")) {
+                return CheckResult.wrong("After starting the program, you should request " +
+                    "the coordinates of the Aircraft Carrier in that way:\n" +
+                    "\"Enter the coordinates of the Aircraft Carrier (5 cells):\"");
+            }
+
+            output = main.execute("J3 J7").trim();
+            matrix = getFieldMatrix(output);
+            findShipByCoordinates(matrix, "J3 J7");
+
+            if (!output.toLowerCase().contains("battleship")) {
+                return CheckResult.wrong("After asking for the Aircraft Carrier coordinates, you should request " +
+                    "the coordinates of the Battleship in that way:\n" +
+                    "\"Enter the coordinates of the Battleship (4 cells):\"");
+            }
+
+            output = main.execute("C8 B8");
+            if (isGameFieldPrinted(output)) {
+                return CheckResult.wrong("Your program should not print a game field if there is an input mistake. " +
+                    "(Incorrect length of the ship)");
+            }
+
+            output = main.execute("C8 F8").trim();
+            matrix = getFieldMatrix(output);
+            findShipByCoordinates(matrix, "C8 F8");
+
+            if (!output.toLowerCase().contains("submarine")) {
+                return CheckResult.wrong("After asking for the Battleship coordinates, you should request " +
+                    "the coordinates of the Submarine in that way:\n" +
+                    "\"Enter the coordinates of the Submarine (3 cells):\"");
+            }
+
+            output = main.execute("A1 C2").trim();
+            if (isGameFieldPrinted(output)) {
+                return CheckResult.wrong("Your program should not print a game field if there is an input mistake.");
+            }
+
+            output = main.execute("A1 C1").trim();
+            matrix = getFieldMatrix(output);
+            findShipByCoordinates(matrix, "A1 C1");
+
+            if (!output.toLowerCase().contains("cruiser")) {
+                return CheckResult.wrong("After asking for the Submarine coordinates, you should request " +
+                    "the coordinates of the Cruiser in that way:\n" +
+                    "\"Enter the coordinates of the Cruiser (3 cells):\"");
+            }
+
+            output = main.execute("H1 H3").trim();
+            matrix = getFieldMatrix(output);
+            findShipByCoordinates(matrix, "H1 H3");
+
+            if (!output.toLowerCase().contains("destroyer")) {
+                return CheckResult.wrong("After asking for the Cruiser coordinates, you should request " +
+                    "the coordinates of the Destroyer in that way:\n" +
+                    "\"Enter the coordinates of the Destroyer (2 cells):\"");
+            }
+
+            output = main.execute("G2 E2").trim();
+            if (isGameFieldPrinted(output)) {
+                return CheckResult.wrong("Your program should not print a game field if there is an input mistake. " +
+                    "(Too close to another ship)");
+            }
+
+            output = main.execute("B5 C5").trim();
+            matrix = getFieldMatrix(output);
+            findShipByCoordinates(matrix, "B5 C5");
+
+            if (!output.contains("starts")) {
+                return CheckResult.wrong("Your program didn't print a massage about game start");
+            }
+
+            String[] temp = output.split("starts");
+            if (temp.length < 2) {
+                return CheckResult.wrong("After printing \"The game starts!\" you should print an empty battle field!");
+            }
+            output = temp[1];
+
+            if (!matrixIsEmpty(getFieldMatrix(output))) {
+                return CheckResult.wrong("After the game starts you should print an empty battle field!");
+            }
+
+            output = validateShots(main, new String[][]{
+                {"A1", "x"}, {"A2", "m"}, {"B1", "x"}, {"C1", "x"}, {"D1", "m"}, {"F5", "m"},
+                {"B5", "x"}, {"B4", "m"}, {"C5", "x"}, {"H8", "m"}, {"F8", "x"}, {"G8", "m"},
+                {"E8", "x"}, {"D8", "x"}, {"C8", "x"}, {"D8", "x"}, {"I9", "m"}, {"H1", "x"},
+                {"I1", "m"}, {"H2", "x"}, {"H3", "x"}, {"E2", "m"}, {"I8", "m"}, {"J7", "x"},
+                {"J8", "m"}, {"J6", "x"}, {"J5", "x"}, {"J4", "x"}, {"J3", "x"},
+            });
+
+            if (!output.toLowerCase().contains("you sank the last ship")) {
+                return CheckResult.wrong("At the end of the game, your program should print a congratulatory message to the winner:" +
+                    " You sank the last ship. You won. Congratulations!");
+            }
+
+            if (!main.isFinished()) {
+                return CheckResult.wrong("The game didn't stop after all ships were sank.");
+            }
+
+            return CheckResult.correct();
+        }
+
+
+        String validateShots(TestedProgram main, String[][] commands) {
+
+            String output = null;
+
+            for (String[] item : commands) {
+                output = main.execute(item[0]);
+                if (item[1].equals("x")) {
+                    if (!checkShot(getFieldMatrix(output), item[0])) {
+                        throw new WrongAnswer("Expected hit in " + item[0]);
+                    }
+                }
+                if (item[1].equals("m")) {
+                    if (!checkMissing(getFieldMatrix(output), item[0])) {
+                        throw new WrongAnswer("Expected miss in " + item[0]);
+                    }
+                }
+            }
+
+            return output;
+        }
+
+
+        void findShipByCoordinates(String[][] matrix, String coordinates) {
+            int[] coordinatesInt = parseCoordinates(coordinates);
+
+            if (coordinatesInt[0] > coordinatesInt[2]) {
+                int swap = coordinatesInt[0];
+                coordinatesInt[0] = coordinatesInt[2];
+                coordinatesInt[2] = swap;
+            } else if (coordinatesInt[1] > coordinatesInt[3]) {
+                int swap = coordinatesInt[1];
+                coordinatesInt[1] = coordinatesInt[3];
+                coordinatesInt[3] = swap;
+            }
+
+            if (coordinatesInt[0] == coordinatesInt[2]) {
+                int cord = coordinatesInt[0];
+                for (int i = coordinatesInt[1]; i <= coordinatesInt[3]; i++) {
+                    if (!matrix[cord][i].toLowerCase().equals("x") && !matrix[cord][i].toLowerCase().equals("o")) {
+                        throw new WrongAnswer("The ship's cells were not found at the coordinates \"" + coordinates + "\"");
+                    }
+                }
+            } else {
+                int cord = coordinatesInt[1];
+                for (int i = coordinatesInt[0]; i <= coordinatesInt[2]; i++) {
+                    if (!matrix[i][cord].toLowerCase().equals("x") && !matrix[i][cord].toLowerCase().equals("o")) {
+                        throw new WrongAnswer("The ship's cells were not found at the \"" + coordinates + "\"");
+                    }
+                }
+            }
+        }
+
+        boolean matrixIsEmpty(String[][] matrix) {
+            for (String[] strings : matrix) {
+                for (int j = 0; j < matrix.length; j++) {
+                    if (!strings[j].trim().equals("~")) {
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+
+        boolean checkShot(String[][] matrix, String coordinate) {
+            int[] parsedCoordinate = new int[2];
+            parsedCoordinate[0] = charToInt(coordinate.toLowerCase().substring(0, 1));
+            parsedCoordinate[1] = Integer.parseInt(coordinate.substring(1)) - 1;
+
+            return matrix[parsedCoordinate[0]][parsedCoordinate[1]].toLowerCase().contains("x");
+        }
+
+        boolean checkMissing(String[][] matrix, String coordinate) {
+            int[] parsedCoordinate = new int[2];
+            parsedCoordinate[0] = charToInt(coordinate.toLowerCase().substring(0, 1));
+            parsedCoordinate[1] = Integer.parseInt(coordinate.substring(1)) - 1;
+
+            return matrix[parsedCoordinate[0]][parsedCoordinate[1]].toLowerCase().contains("m");
+        }
+
+        int[] parseCoordinates(String coordinatesString) {
+            String[] splittedCoords = coordinatesString.split(" ");
+            int[] parsedCoordinates = new int[4];
+
+            parsedCoordinates[0] = charToInt(splittedCoords[0].substring(0, 1));
+            parsedCoordinates[1] = Integer.parseInt(splittedCoords[0].substring(1)) - 1;
+            parsedCoordinates[2] = charToInt(splittedCoords[1].substring(0, 1));
+            parsedCoordinates[3] = Integer.parseInt(splittedCoords[1].substring(1)) - 1;
+
+            return parsedCoordinates;
+        }
+
+        int charToInt(String charCoordinate) {
+            charCoordinate = charCoordinate.toLowerCase();
+            char character = charCoordinate.charAt(0);
+            return (int) character - (int) 'a';
+        }
+
+        String[][] getFieldMatrix(String output) {
+
+            WrongAnswer cantParseException = new WrongAnswer("Can't parse the game field\n" +
+                "Make sure you print it like in examples!");
+
+            String[] splittedOutput = output.split("\n");
+            String[][] matrix = new String[10][10];
+
+            try {
+                int index = 0;
+                while (!(splittedOutput[index].contains("1") &&
+                    splittedOutput[index].contains("2") &&
+                    splittedOutput[index].contains("10"))) {
+                    index++;
+                    if (index > 1000) {
+                        throw cantParseException;
+                    }
+                }
+                index++;
+
+                for (int i = 0; i < 10; i++) {
+                    String temp = splittedOutput[index].substring(2).trim();
+                    String[] splittedLine = temp.trim().split(" ");
+                    if (splittedLine.length != 10) {
+                        throw cantParseException;
+                    }
+                    matrix[i] = splittedLine;
+                    index++;
+                }
+            } catch (IndexOutOfBoundsException ignored) {
+                throw cantParseException;
+            }
+
+            return matrix;
+        }
+
+        boolean isGameFieldPrinted(String output) {
+            return output.contains("1") && output.contains("2") && output.contains("10");
+        }
+    }
+  learner_created: false
+- name: src/battleship/ShipModel.java
+  visible: true
+  text: |
+    package battleship;
+
+    public enum ShipModel {
+        AIRCRAFT("Aircraft Carrier", 5),
+        BATTLESHIP("Battleship", 4),
+        SUBMARINE("Submarine", 3),
+        CRUISER("Cruiser", 3),
+        DESTROYER("Destroyer", 2);
+        private final String shipName;
+        private final int shipLength;
+
+        ShipModel(String shipName, int shipLength) {
+            this.shipName = shipName;
+            this.shipLength = shipLength;
+        }
+
+        public String getShipName() {
+            return shipName;
+        }
+
+        public int getShipLength() {
+            return shipLength;
+        }
+    }
+  learner_created: true
+- name: src/battleship/Coordinate.java
+  visible: true
+  text: |
+    package battleship;
+
+    import java.util.ArrayList;
+
+    import static battleship.GameField.ASCII_CODE;
+    import static battleship.GameField.SYMBOL_FOG;
+    import static battleship.Main.*;
+
+    public class Coordinate {
+        private int rowIndex; // A -> J
+        private int colIndex; // 1 -> 10
+
+        @Override
+        public String toString() {
+            return "[" + rowIndex + "," + colIndex + ']';
+        }
+
+        public Coordinate(int rowIndex, int colIndex) {
+            this.rowIndex = rowIndex;
+            this.colIndex = colIndex;
+        }
+
+        public Coordinate(char rowIndex, String colIndex) {
+            this.rowIndex = convertRowIndexToNumber(rowIndex) - 1;
+            this.colIndex = Integer.parseInt(String.valueOf(colIndex)) - 1;
+        }
+
+        public int getRowIndex() {
+            return rowIndex;
+        }
+
+        public int getColIndex() {
+            return colIndex;
+        }
+
+        public static Coordinate[] convertToCoordinates(String[] inputCoordinates) {
+            String beginPoint = inputCoordinates[0];
+            String endPoint = inputCoordinates[1];
+            Coordinate beginCoordinate = convertToCoordinate(beginPoint);
+            Coordinate endCoordinate = convertToCoordinate(endPoint);
+            return new Coordinate[]{beginCoordinate, endCoordinate};
+        }
+
+        // Convert character to number coordinate
+        public static Coordinate convertToCoordinate(String inputCoordinate) {
+            char begin = inputCoordinate.charAt(0);
+            String end = inputCoordinate.substring(1);
+            return new Coordinate(begin, end);
+        }
+
+        public static int convertRowIndexToNumber(char rowIndex) {
+            return (int) rowIndex - ASCII_CODE;
+        }
+
+        public static boolean isHorizontal(Coordinate[] coordinates) {
+            // Check same row
+            Coordinate begin = coordinates[0];
+            Coordinate end = coordinates[1];
+            return begin.getRowIndex() == end.getRowIndex();
+        }
+
+        public static boolean isVertical(Coordinate[] coordinates) {
+            // Check same column
+            Coordinate begin = coordinates[0];
+            Coordinate end = coordinates[1];
+            return begin.getColIndex() == end.getColIndex();
+        }
+
+        public static boolean checkCoordinateIsIsolate(Coordinate coordinate) {
+            ArrayList<Coordinate> neighborPoints = getNeighborPoints(coordinate);
+            for (Coordinate neighborPoint : neighborPoints) {
+                String coordinateValue = GameField.getCoordinateValue(neighborPoint);
+                if (!SYMBOL_FOG.equals(coordinateValue)) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        public static ArrayList<Coordinate> getNeighborPoints(Coordinate coordinate) {
+            ArrayList<Coordinate> coordinates = new ArrayList<>();
+            int rowIndex = coordinate.getRowIndex();
+            int colIndex = coordinate.getColIndex();
+            int upRowIndex = (rowIndex == 0) ? -1 : rowIndex - 1;
+            int downRowIndex = (rowIndex == SIZE_ROW - 1) ? -1 : rowIndex + 1;
+            int leftColIndex = (colIndex == 0) ? -1 : colIndex - 1;
+            int rightColIndex = (colIndex == SIZE_COL - 1) ? -1 : colIndex + 1;
+
+            if (upRowIndex != -1) {
+                coordinates.add(new Coordinate(upRowIndex, colIndex));
+            }
+            if (downRowIndex != -1) {
+                coordinates.add(new Coordinate(downRowIndex, colIndex));
+            }
+            if (leftColIndex != -1) {
+                coordinates.add(new Coordinate(rowIndex, leftColIndex));
+            }
+            if (rightColIndex != -1) {
+                coordinates.add(new Coordinate(rowIndex, rightColIndex));
+            }
+
+            return coordinates;
+        }
+
+    }
+  learner_created: true
+- name: src/battleship/ShipCoordinate.java
+  visible: true
+  text: |
+    package battleship;
+
+    import java.util.ArrayList;
+
+    import static battleship.Coordinate.*;
+
+    public class ShipCoordinate {
+        private boolean isHorizontalShip;
+        private Coordinate beginCoordinate;
+        private Coordinate endCoordinate;
+        private int commonIndex;
+        private int beginIndex;
+        private int endIndex;
+
+        public ShipCoordinate(Coordinate[] coordinates) {
+            this.beginCoordinate = coordinates[0];
+            this.endCoordinate = coordinates[1];
+            this.isHorizontalShip = beginCoordinate.getRowIndex() == endCoordinate.getRowIndex();
+            this.commonIndex = this.isHorizontalShip ? beginCoordinate.getRowIndex() : beginCoordinate.getColIndex();
+            if (this.isHorizontalShip) {
+                if (beginCoordinate.getColIndex() < endCoordinate.getColIndex()) {
+                    this.beginIndex = beginCoordinate.getColIndex();
+                    this.endIndex = endCoordinate.getColIndex();
+                } else {
+                    this.beginIndex = endCoordinate.getColIndex();
+                    this.endIndex = beginCoordinate.getColIndex();
+                }
+            } else {
+                if (beginCoordinate.getRowIndex() < endCoordinate.getRowIndex()) {
+                    this.beginIndex = beginCoordinate.getRowIndex();
+                    this.endIndex = endCoordinate.getRowIndex();
+                } else {
+                    this.beginIndex = endCoordinate.getRowIndex();
+                    this.endIndex = beginCoordinate.getRowIndex();
+                }
+
+            }
+        }
+
+        public static ShipCoordinate convertToShipCoordinate(String beginCoordinate, String endCoordinate) {
+            Coordinate[] coordinates = Coordinate.convertToCoordinates(new String[]{beginCoordinate,endCoordinate });
+            return new ShipCoordinate(coordinates);
+        }
+
+        public boolean isHorizontalShip() {
+            return isHorizontalShip;
+        }
+
+        public void setHorizontalShip(boolean horizontalShip) {
+            isHorizontalShip = horizontalShip;
+        }
+
+        public int getCommonIndex() {
+            return commonIndex;
+        }
+
+        public void setCommonIndex(int commonIndex) {
+            this.commonIndex = commonIndex;
+        }
+
+        public int getBeginIndex() {
+            return beginIndex;
+        }
+
+        public void setBeginIndex(int beginIndex) {
+            this.beginIndex = beginIndex;
+        }
+
+        public int getEndIndex() {
+            return endIndex;
+        }
+
+        public void setEndIndex(int endIndex) {
+            this.endIndex = endIndex;
+        }
+
+        public static boolean checkShipIsHorizontalOrVertical(Coordinate[] coordinates) {
+            return isHorizontal(coordinates) || isVertical(coordinates);
+        }
+
+        public static boolean checkShipHasValidLength(Coordinate[] coordinates, int shipCell) {
+            Coordinate begin = coordinates[0];
+            Coordinate end = coordinates[1];
+
+            if (isHorizontal(coordinates)) {
+                return Math.abs(begin.getColIndex() - end.getColIndex()) + 1 == shipCell;
+            }
+
+            if (isVertical(coordinates)) {
+                return Math.abs(begin.getRowIndex() - end.getRowIndex()) + 1 == shipCell;
+            }
+
+            return false;
+        }
+
+        public static boolean checkShipIsFarFromAnotherOne(Coordinate[] coordinates) {
+            ShipCoordinate shipCoordinate = new ShipCoordinate(coordinates);
+            ArrayList<Coordinate> rangeShipCoordinates = getRangeShipCoordinates(shipCoordinate);
+            for (Coordinate coordinate : rangeShipCoordinates) {
+                if (!checkCoordinateIsIsolate(coordinate)) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        public static ArrayList<Coordinate> getRangeShipCoordinates(ShipCoordinate shipCoordinate) {
+            ArrayList<Coordinate> coordinates = new ArrayList<>();
+            if (shipCoordinate.isHorizontalShip()) {
+                int rowIndex = shipCoordinate.getCommonIndex();
+                for (int colIndex = shipCoordinate.getBeginIndex(); colIndex <= shipCoordinate.getEndIndex(); colIndex++) {
+                    coordinates.add(new Coordinate(rowIndex, colIndex));
+                }
+            } else {
+                int colIndex = shipCoordinate.getCommonIndex();
+                for (int rowIndex = shipCoordinate.getBeginIndex(); rowIndex <= shipCoordinate.getEndIndex(); rowIndex++) {
+                    coordinates.add(new Coordinate(rowIndex, colIndex));
+                }
+            }
+            return coordinates;
+        }
+    }
+  learner_created: true
+- name: src/battleship/Ship.java
+  visible: true
+  text: |
+    package battleship;
+
+    public class Ship {
+        private ShipModel shipModel;
+        private ShipCoordinate shipCoordinate;
+        private boolean isDestroyed;
+
+        public Ship(ShipModel shipModel) {
+            this.shipModel = shipModel;
+        }
+
+        public Ship(ShipModel shipModel, String beginCoordinate, String endCoordinate) {
+            this.shipModel = shipModel;
+            this.shipCoordinate = ShipCoordinate.convertToShipCoordinate(beginCoordinate, endCoordinate);
+        }
+
+        public ShipModel getShipModel() {
+            return shipModel;
+        }
+
+        public ShipCoordinate getShipCoordinate() {
+            return shipCoordinate;
+        }
+
+        public void setShipCoordinate(ShipCoordinate shipCoordinate) {
+            this.shipCoordinate = shipCoordinate;
+        }
+
+        public boolean isDestroyed() {
+            return isDestroyed;
+        }
+
+        public void setDestroyed(boolean destroyed) {
+            isDestroyed = destroyed;
+        }
+    }
+
+    class Aircraft extends Ship {
+
+        public Aircraft() {
+            super(ShipModel.AIRCRAFT);
+        }
+
+        public Aircraft(String beginCoordinate, String endCoordinate) {
+            super(ShipModel.AIRCRAFT, beginCoordinate, endCoordinate);
+        }
+    }
+
+    class Battleship extends Ship {
+
+        public Battleship() {
+            super(ShipModel.BATTLESHIP);
+        }
+
+        public Battleship(String beginCoordinate, String endCoordinate) {
+            super(ShipModel.BATTLESHIP, beginCoordinate, endCoordinate);
+        }
+    }
+
+    class Submarine extends Ship {
+
+        public Submarine() {
+            super(ShipModel.SUBMARINE);
+        }
+
+        public Submarine(String beginCoordinate, String endCoordinate) {
+            super(ShipModel.SUBMARINE, beginCoordinate, endCoordinate);
+        }
+    }
+
+    class Cruiser extends Ship {
+
+        public Cruiser() {
+            super(ShipModel.CRUISER);
+        }
+
+        public Cruiser(String beginCoordinate, String endCoordinate) {
+            super(ShipModel.CRUISER, beginCoordinate, endCoordinate);
+        }
+    }
+
+    class Destroyer extends Ship {
+
+        public Destroyer() {
+            super(ShipModel.DESTROYER);
+        }
+
+        public Destroyer(String beginCoordinate, String endCoordinate) {
+            super(ShipModel.DESTROYER, beginCoordinate, endCoordinate);
+        }
+    }
+  learner_created: true
+- name: src/battleship/GameField.java
+  visible: true
+  text: |
+    package battleship;
+
+    import java.util.Scanner;
+
+    import static battleship.Coordinate.convertToCoordinate;
+    import static battleship.Coordinate.convertToCoordinates;
+    import static battleship.Main.SHIPS;
+    import static battleship.ShipCoordinate.*;
+
+    public class GameField {
+        public static final int ASCII_CODE = 64;
+        public static final String SYMBOL_EMPTY = "";
+        public static final String SYMBOL_SPACE = " ";
+        public static final String SYMBOL_FOG = "~";
+        public static final String SYMBOL_PLACED = "O";
+        public static final String SYMBOL_HIT = "X";
+        public static final String SYMBOL_MISSED = "M";
+        private int sizeRow;
+        private int sizeCol;
+        public static String[][] field;
+
+        public GameField(int sizeRow, int sizeCol) {
+            this.setSizeRow(sizeRow);
+            this.setSizeCol(sizeCol);
+            this.field = new String[sizeRow][sizeCol];
+        }
+
+        public void setupField() {
+            for (int i = 0; i < sizeRow; i++) {
+                for (int j = 0; j < sizeCol; j++) {
+                    field[i][j] = SYMBOL_FOG;
+                }
+            }
+        }
+
+        public void displayField(boolean isCovered) {
+            System.out.println();
+            printRowHeader();
+            for (int i = 0; i < sizeRow; i++) {
+                printColHeader(i);
+                for (int j = 0; j < sizeCol; j++) {
+                    System.out.print(SYMBOL_SPACE + (isCovered ? SYMBOL_FOG : field[i][j]));
+                }
+            }
+            System.out.println("\n");
+        }
+
+        public void displayShot(Coordinate coordinate) {
+            System.out.println();
+            printRowHeader();
+            for (int i = 0; i < sizeRow; i++) {
+                printColHeader(i);
+                for (int j = 0; j < sizeCol; j++) {
+                    if (coordinate.getRowIndex() == i && coordinate.getColIndex() == j) {
+                        System.out.print(SYMBOL_SPACE + field[i][j]);
+                    } else {
+                        System.out.print(SYMBOL_SPACE + SYMBOL_FOG);
+                    }
+                }
+            }
+            System.out.println("\n");
+        }
+
+        public void placeShips() {
+            Scanner scanner = new Scanner(System.in);
+            for (Ship ship : SHIPS) {
+                System.out.println("Enter the coordinates of the " + ship.getShipModel().getShipName() + " (" + ship.getShipModel().getShipLength() + " cells):");
+                ShipCoordinate shipCoordinate = inputAndReturnValidShipCoordinate(scanner, ship);
+                buildShip(shipCoordinate);
+                displayField(false);
+            }
+        }
+
+        public void mockPlaceShips() {
+            for (Ship ship : SHIPS) {
+                buildShip(ship.getShipCoordinate());
+                displayField(false);
+            }
+        }
+
+        public void buildShip(ShipCoordinate shipCoordinate) {
+
+            if (shipCoordinate.isHorizontalShip()) {
+                int rowIndex = shipCoordinate.getCommonIndex();
+                for (int i = shipCoordinate.getBeginIndex(); i <= shipCoordinate.getEndIndex(); i++) {
+                    field[rowIndex][i] = SYMBOL_PLACED;
+                }
+            } else {
+                int colIndex = shipCoordinate.getCommonIndex();
+                for (int i = shipCoordinate.getBeginIndex(); i <= shipCoordinate.getEndIndex(); i++) {
+                    field[i][colIndex] = SYMBOL_PLACED;
+                }
+            }
+        }
+
+        public void startShooting() {
+            System.out.println("The game starts!");
+            displayField(true);
+            System.out.println("Take a shot!");
+            Coordinate coordinate = inputAndReturnValidCoordinate(new Scanner(System.in));
+            checkShooting(coordinate);
+        }
+
+        public Coordinate inputAndReturnValidCoordinate(Scanner scanner) {
+            boolean isValid;
+            Coordinate coordinate;
+            do {
+                String inputCoordinate = scanner.nextLine();
+                coordinate = convertToCoordinate(inputCoordinate);
+                isValid = checkCoordinate(coordinate);
+                if (!isValid) {
+                    System.out.println("Error! You entered the wrong coordinates! Try again:");
+                }
+            } while (!isValid);
+            return coordinate;
+        }
+
+        public boolean checkCoordinate(Coordinate coordinate) {
+            if (coordinate.getRowIndex() >= sizeRow) {
+                return false;
+            }
+            if (coordinate.getColIndex() >= sizeCol) {
+                return false;
+            }
+            return true;
+        }
+
+        public void checkShooting(Coordinate coordinate) {
+            boolean isNiceShot = getCoordinateValue(coordinate).equals(SYMBOL_PLACED);
+            setCoordinateValue(coordinate, isNiceShot ? SYMBOL_HIT : SYMBOL_MISSED);
+            displayShot(coordinate);
+            System.out.println(isNiceShot ? "You hit a ship!" : "You missed!");
+            displayField(false);
+        }
+
+        public ShipCoordinate inputAndReturnValidShipCoordinate(Scanner scanner, Ship ship) {
+            boolean isValid;
+            Coordinate[] coordinates;
+            do {
+                String[] inputCoordinates = scanner.nextLine().split("\\s+");
+                coordinates = convertToCoordinates(inputCoordinates);
+                isValid = checkCoordinates(coordinates, ship);
+            } while (!isValid);
+
+            return new ShipCoordinate(coordinates);
+        }
+
+        public boolean checkCoordinates(Coordinate[] coordinates, Ship ship) {
+
+            if (!checkShipIsHorizontalOrVertical(coordinates)) {
+                System.out.println("Error! Wrong ship location! Try again:");
+                return false;
+            }
+
+            if (!checkShipHasValidLength(coordinates, ship.getShipModel().getShipLength())) {
+                System.out.println("Error! Wrong length of the " + ship.getShipModel().getShipName() + "! Try again:");
+                return false;
+            }
+
+            if (!checkShipIsFarFromAnotherOne(coordinates)) {
+                System.out.println("Error! You placed it too close to another one. Try again:");
+                return false;
+            }
+
+            return true;
+        }
+
+        public static String getCoordinateValue(Coordinate coordinate) {
+            return field[coordinate.getRowIndex()][coordinate.getColIndex()];
+        }
+
+        public static void setCoordinateValue(Coordinate coordinate, String content) {
+            field[coordinate.getRowIndex()][coordinate.getColIndex()] = content;
+        }
+
+        // Print 1st row header: 1 -> 10
+        public void printRowHeader() {
+            StringBuilder colHeader = new StringBuilder(SYMBOL_SPACE);
+            for (int i = 1; i <= sizeRow; i++) {
+                colHeader.append(SYMBOL_SPACE + i);
+            }
+            System.out.print(colHeader);
+        }
+
+        // Print 1st col header: A -> J
+        public void printColHeader(int rowIndex) {
+            System.out.print("\n" + (char) (ASCII_CODE + rowIndex + 1));
+        }
+
+        public int getSizeRow() {
+            return sizeRow;
+        }
+
+        public void setSizeRow(int sizeRow) {
+            this.sizeRow = sizeRow;
+        }
+
+        public int getSizeCol() {
+            return sizeCol;
+        }
+
+        public void setSizeCol(int sizeCol) {
+            this.sizeCol = sizeCol;
+        }
+    }
+  learner_created: true
+feedback_link: https://hyperskill.org/learn/step/10597#comment
+status: Solved
+feedback:
+  message: Congratulations!
+  time: Thu, 23 Mar 2023 16:17:31 UTC
+record: 4
